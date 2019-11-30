@@ -4,8 +4,9 @@ ConditionPathExists=/var/lib/flatpak/app/org.learningequality.Kolibri
 
 [Service]
 Type=simple
-ExecStart=@bindir@/flatpak run --no-desktop --command=kolibri org.learningequality.Kolibri start --foreground --port=@KOLIBRI_PORT@
-Environment=KOLIBRI_RUN_MODE=flatpaktest
+ExecStart=@bindir@/flatpak run --no-desktop org.learningequality.Kolibri service
+Environment=KOLIBRI_HTTP_PORT=@KOLIBRI_PORT@
+Environment=KOLIBRI_IDLE_TIMEOUT_MINS=10
 User=kolibri
 PrivateTmp=yes
 Restart=on-failure

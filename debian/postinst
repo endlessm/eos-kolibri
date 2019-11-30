@@ -8,7 +8,7 @@ if ! getent passwd kolibri >/dev/null; then
             --no-create-home \
             --home /var/lib/kolibri \
             --shell /sbin/nologin \
-            --group \
+            --user-group \
             kolibri
 fi
 

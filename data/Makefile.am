@@ -11,19 +11,19 @@ systemdsystemunit_DATA = \
 tmpfilesdir = $(prefix)/lib/tmpfiles.d
 tmpfiles_DATA = eos-kolibri-system-helper.conf
 
-# flatpak overrides
-flatpakoverridesdir = $(localstatedir)/lib/flatpak/overrides
-flatpakoverrides_DATA = org.learningequality.Kolibri
+# systemd environment.d
+environmentdir = $(prefix)/lib/environment.d
+environment_DATA = 00-eos-kolibri.conf
 
 EXTRA_DIST = \
 	eos-kolibri-system-helper.service \
 	eos-kolibri-system-helper.socket \
 	eos-kolibri-system-helper.conf \
-	org.learningequality.Kolibri \
+	00-eos-kolibri.conf \
 	$(NULL)
 
 CLEANFILES = \
 	eos-kolibri-system-helper.service \
 	eos-kolibri-system-helper.socket \
-	org.learningequality.Kolibri \
+	00-eos-kolibri.conf \
 	$(NULL)
