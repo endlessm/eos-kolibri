@@ -1,0 +1,13 @@
+[Unit]
+Description=Kolibri Server
+ConditionPathExists=/var/lib/flatpak/app/org.learningequality.Kolibri
+
+[Service]
+Type=simple
+ExecStart=__bindir__/flatpak run --no-desktop --filesystem=__KOLIBRI_DATA_HOME__ org.learningequality.Kolibri service
+Environment=KOLIBRI_HOME=__KOLIBRI_DATA_HOME__
+Environment=KOLIBRI_HTTP_PORT=__KOLIBRI_PORT__
+Environment=KOLIBRI_IDLE_TIMEOUT_MINS=10
+User=__KOLIBRI_USER__
+PrivateTmp=yes
+Restart=on-failure

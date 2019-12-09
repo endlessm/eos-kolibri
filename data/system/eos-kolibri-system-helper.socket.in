@@ -2,7 +2,7 @@
 Description=Kolibri Server
 
 [Socket]
-ListenStream=@KOLIBRI_PORT@
+ListenStream=__KOLIBRI_PORT__
 Accept=no
 
 [Install]
