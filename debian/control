@@ -2,17 +2,27 @@ Source: eos-kolibri
 Section: desktop
 Priority: optional
 Maintainer: Dylan McCall <dylan@endlessm.com>
-Build-Depends: debhelper (>=9),
-         dh-autoreconf,
-         dh-systemd (>= 1.5),
-         pkg-config,
-         systemd
+Build-Depends:
+    debhelper (>=9),
+    dh-autoreconf,
+    dh-systemd (>= 1.5),
+    meson,
+    pkg-config,
+    systemd
 Standards-Version: 3.9.8
 Homepage: https://endlessm.com
 Vcs-Git: git://github.com/endlessm/eos-kolibri.git
 
 Package: eos-kolibri-system-helper
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Description: A helper to integrate the Kolibri flatpak with Endless OS
+Depends:
+    ${shlibs:Depends},
+    ${misc:Depends},
+    flatpak,
+    gir1.2-flatpak-1.0,
+    gir1.2-glib-2.0,
+    ostree,
+    python3,
+    python3-gi
+Description:
+    Tools and configuration to integrate the Kolibri flatpak with Endless OS

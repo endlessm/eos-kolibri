@@ -1,0 +1,48 @@
+option(
+    'systemd_system_unit_dir',
+    type: 'string',
+    value: '',
+    description: 'systemd system services directory [default=$libdir/systemd/system]'
+)
+
+option(
+    'systemd_sysusers_dir',
+    type: 'string',
+    value: '',
+    description: 'tmpfiles directory [default=$libdir/sysusers.d]'
+)
+
+option(
+    'systemd_tmpfiles_dir',
+    type: 'string',
+    value: '',
+    description: 'tmpfiles directory [default=$libdir/tmpfiles.d]'
+)
+
+option(
+    'systemd_environment_dir',
+    type: 'string',
+    value: '',
+    description: 'tmpfiles directory [default=$libdir/environment.d]'
+)
+
+option(
+    'kolibri_user',
+    type: 'string',
+    value: 'kolibri',
+    description: 'user to create for the system service'
+)
+
+option(
+    'kolibri_user_home',
+    type: 'string',
+    value: '',
+    description: 'home directory for the system user [default=$localstatedir/lib/kolibri]'
+)
+
+option(
+    'kolibri_port',
+    type: 'string',
+    value: '18009',
+    description: 'port number for the system Kolibri instance [default=18009]'
+)
