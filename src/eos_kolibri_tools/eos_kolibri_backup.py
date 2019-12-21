@@ -31,21 +31,41 @@ import subprocess
 import sys
 
 from . import flatpakutils
-from .utils import die, filesystem_for_path
+from .utils import die, filesystem_for_path, recursive_chown
+
+KOLIBRI_APP_ID = 'org.learningequality.Kolibri'
+KOLIBRI_APP_REMOTE_NAME = 'eos-apps'
+KOLIBRI_SYSTEMD_UNIT_NAME = 'eos-kolibri-system-helper'
 
 KOLIBRI_USER = 'kolibri'
 kolibri_pwd = pwd.getpwnam(KOLIBRI_USER)
 
-KOLIBRI_APP_ID = 'org.learningequality.Kolibri'
-KOLIBRI_APP_REMOTE_NAME = 'eos-apps'
 KOLIBRI_USER_ID = kolibri_pwd.pw_uid
 KOLIBRI_GROUP_ID = kolibri_pwd.pw_gid
 KOLIBRI_HOME_DIR = kolibri_pwd.pw_dir
-KOLIBRI_DATA_DIR = os.environ.get('KOLIBRI_HOME')
-KOLIBRI_FLATPAK_BACKUP_SUBDIR = 'flatpak-repo'
-KOLIBRI_DATA_BACKUP_SUBDIR = 'data-backup'
-KOLIBRI_SYSTEMD_UNIT_NAME = 'eos-kolibri-system-helper'
+KOLIBRI_DATA_DIR = os.environ.get(
+    'KOLIBRI_HOME',
+    os.path.join(KOLIBRI_HOME_DIR, '.var', 'app', KOLIBRI_APP_ID)
+)
 
+KOLIBRI_FLATPAK_BACKUP_SUBDIR = 'flatpak-repo'
+KOLIBRI_DATA_BACKUP_SUBDIR = 'eos-kolibri-backup'
+
+KOLIBRI_DATA_FILES = (
+    'content',
+    'db.sqlite3',
+    'job_storage.sqlite3',
+    'kolibri_settings.json',
+    'notifications.sqlite3'
+)
+# We skip the following files from Kolibri's data directory:
+# - .data_version
+# - logs/
+# - server.pid
+# - sessions/
+# - static/
+# Kolibri will run a database migration and collect static files when it runs
+# after restoring from a backup.
 
 def signal_handler(signal, frame):
     die('\nProcess interrupted!')
@@ -65,7 +85,7 @@ def stop_kolibri_server():
     print("Stopping the Kolibri server...")
     kolibri_pids = []
     try:
-        kolibri_pids = subprocess.check_output(['/usr/bin/pgrep', '-f', 'kolibri-start']).split()
+        kolibri_pids = subprocess.check_output(['/usr/bin/pgrep', '-f', 'kolibri']).split()
     except subprocess.CalledProcessError:
         print("The Kolibri server is not running. Nothing to do.")
         return
@@ -96,19 +116,6 @@ def start_kolibri_services():
     manage_kolibri_services('start', ['socket'])
 
 
-def recursive_chown(path, uid, gid):
-    # Make sure permissions are properly set.
-    for root, dirs, files in os.walk(path):
-        for d in dirs:
-            os.chown(os.path.join(root, d), uid, gid)
-
-        # Use os.lchown(), not to follow symlinks.
-        for f in files:
-            os.lchown(os.path.join(root, f), uid, gid)
-
-    os.chown(path, uid, gid)
-
-
 def backup_kolibri_data(path, interactive=True):
     print("Backing app Kolibri data into {}...".format(path))
 
@@ -130,7 +137,7 @@ def backup_kolibri_data(path, interactive=True):
     os.makedirs(backup_path)
 
     try:
-        for data_path in ['content', 'database', 'httpsrv', 'locale', 'settings.py']:
+        for data_path in KOLIBRI_DATA_FILES:
             src_path = os.path.join(KOLIBRI_HOME_DIR, data_path)
             dest_path = os.path.join(backup_path, data_path)
 

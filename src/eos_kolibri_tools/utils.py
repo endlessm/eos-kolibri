@@ -44,3 +44,16 @@ def filesystem_for_path(path):
                 return fields[8]
 
     return None
+
+
+def recursive_chown(path, uid, gid):
+    # Make sure permissions are properly set.
+    for root, dirs, files in os.walk(path):
+        for d in dirs:
+            os.chown(os.path.join(root, d), uid, gid)
+
+        # Use os.lchown(), not to follow symlinks.
+        for f in files:
+            os.lchown(os.path.join(root, f), uid, gid)
+
+    os.chown(path, uid, gid)
