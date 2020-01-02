@@ -6,8 +6,9 @@ Build-Depends:
     debhelper (>=9),
     dh-autoreconf,
     dh-systemd (>= 1.5),
-    meson,
+    meson (>= 0.50.0),
     pkg-config,
+    python3-setuptools,
     systemd
 Standards-Version: 3.9.8
 Homepage: https://endlessm.com
