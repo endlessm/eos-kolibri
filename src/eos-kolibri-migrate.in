@@ -1,0 +1,5 @@
+#!/usr/bin/env @PYTHON@
+
+import sys
+from eos_kolibri_tools import eos_kolibri_migrate
+sys.exit(eos_kolibri_migrate.main())

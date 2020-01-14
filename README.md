@@ -21,6 +21,5 @@ CherryPy, which accepts a file descriptor from systemd.
 ## eos-kolibri-tools
 
 Provides tools to manage the system-wide Kolibri installation. In particular,
-provides `eos-kolibri-backup`, which is a simple way to back up and restore
-Kolibri data, as well as to migrate from a per-user Kolibri installation to a
-system-wide one.
+provides `eos-kolibri-migrate`, which is a simple way to copy Kolibri data
+from a desktop user's Kolibri instance to the system Kolibri instance.

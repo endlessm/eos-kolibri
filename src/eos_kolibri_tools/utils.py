@@ -24,26 +24,24 @@
 import os
 import sys
 
-
-def die(message):
-    print(message, file=sys.stderr)
-    sys.exit(1)
+from pathlib import Path
 
 
-def filesystem_for_path(path):
-    basedir = path
-    while not os.path.exists(basedir):
-        basedir = os.path.dirname(basedir)
+def argparse_dir_path(string):
+    path = Path(string)
+    if path.is_dir():
+        return path
+    else:
+        raise NotADirectoryError(path)
 
-    dev = os.stat(basedir).st_dev
-    major_minor = '{}:{}'.format(os.major(dev), os.minor(dev))
-    with open('/proc/self/mountinfo') as mountinfo:
-        for line in mountinfo:
-            fields = line.split()
-            if fields[2] == major_minor:
-                return fields[8]
 
-    return None
+def get_backup_path(path):
+    backup_path = path.with_suffix('.bak')
+    backup_count = 0
+    while backup_path.exists():
+        backup_count += 1
+        backup_path = path.with_suffix('.bak{}'.format(backup_count))
+    return backup_path
 
 
 def recursive_chown(path, uid, gid):
