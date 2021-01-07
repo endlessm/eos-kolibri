@@ -1,13 +1,19 @@
 subdir('eos_kolibri_tools')
 
-eos_kolibri_migrate_conf = configuration_data()
-eos_kolibri_migrate_conf.set('PYTHON', 'python3')
-
 configure_file(
     input: 'eos-kolibri-migrate.in',
     output: 'eos-kolibri-migrate',
-    configuration: eos_kolibri_migrate_conf,
+    configuration: eos_kolibri_config,
     install: true,
-    install_dir: get_option('bindir'),
+    install_dir: bindir,
+    install_mode: 'rwxr-xr-x'
+)
+
+configure_file(
+    input: 'eos-kolibri-daemon.in',
+    output: 'eos-kolibri-daemon',
+    configuration: eos_kolibri_config,
+    install: true,
+    install_dir: libexecdir,
     install_mode: 'rwxr-xr-x'
 )

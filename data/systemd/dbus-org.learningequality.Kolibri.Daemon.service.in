@@ -1,0 +1,10 @@
+[Unit]
+Description=Kolibri Daemon Service
+ConditionPathExists=/var/lib/flatpak/app/@KOLIBRI_FLATPAK_ID@
+
+[Service]
+Type=dbus
+BusName=@KOLIBRI_DAEMON_SERVICE@
+ExecStart=@libexecdir@/eos-kolibri-daemon
+User=@KOLIBRI_USER@
+PrivateTmp=yes

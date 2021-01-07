@@ -1,4 +1,6 @@
+subdir('dbus')
 subdir('environment.d')
-subdir('system')
+subdir('systemd')
 subdir('sysusers.d')
 subdir('tmpfiles.d')
+
