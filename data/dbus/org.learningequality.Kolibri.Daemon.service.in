@@ -1,5 +1,5 @@
 [D-BUS Service]
 Name=@KOLIBRI_DAEMON_SERVICE@
 Exec=/bin/false
-User=@KOLIBRI_USER@
+User=root
 SystemdService=dbus-@KOLIBRI_DAEMON_SERVICE@.service
