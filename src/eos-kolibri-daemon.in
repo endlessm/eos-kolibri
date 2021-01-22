@@ -1,0 +1,13 @@
+#!/bin/sh
+
+: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
+
+@bindir@/flatpak run \
+   --no-desktop \
+  --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
+  --filesystem="${KOLIBRI_HOME}" \
+  --system-own-name=@KOLIBRI_DAEMON_SERVICE@ \
+  --command=/app/libexec/kolibri-gnome/kolibri-daemon \
+  @KOLIBRI_FLATPAK_ID@ \
+  --system \
+  $@

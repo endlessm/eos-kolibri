@@ -41,8 +41,8 @@ option(
 )
 
 option(
-    'kolibri_port',
+    'kolibri_flatpak_id',
     type: 'string',
-    value: '18009',
-    description: 'port number for the system Kolibri instance [default=18009]'
+    value: 'org.learningequality.Kolibri',
+    description: 'identifier for the Kolibri flatpak [default=org.learningequality.Kolibri]'
 )
