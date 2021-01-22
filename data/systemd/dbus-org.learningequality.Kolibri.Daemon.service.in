@@ -6,5 +6,8 @@ ConditionPathExists=/var/lib/flatpak/app/@KOLIBRI_FLATPAK_ID@
 Type=dbus
 BusName=@KOLIBRI_DAEMON_SERVICE@
 ExecStart=@libexecdir@/eos-kolibri-daemon
+DynamicUser=yes
 User=@KOLIBRI_USER@
-PrivateTmp=yes
+RuntimeDirectory=kolibri
+StateDirectory=kolibri
+Environment=HOME=%t/kolibri

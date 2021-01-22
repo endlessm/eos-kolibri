@@ -51,12 +51,8 @@ dbus_system_conf_dir = join_paths(datadir, 'dbus-1', 'system.d')
 
 kolibri_user = get_option('kolibri_user')
 
-kolibri_user_home = get_option('kolibri_user_home')
-if kolibri_user_home == ''
-    kolibri_user_home = join_paths(get_option('prefix'), get_option('localstatedir'), 'lib', 'kolibri')
-endif
+kolibri_data_dir = join_paths(get_option('prefix'), get_option('localstatedir'), 'lib', 'kolibri', 'data')
 
-kolibri_data_dir = join_paths(kolibri_user_home, 'data')
 kolibri_flatpak_id = get_option('kolibri_flatpak_id')
 kolibri_daemon_service = '@0@.Daemon'.format(kolibri_flatpak_id)
 
@@ -66,7 +62,6 @@ eos_kolibri_config.set('libexecdir', libexecdir)
 eos_kolibri_config.set('PYTHON', 'python3')
 eos_kolibri_config.set('PYTHON_INSTALL_DIR', python_install_dir)
 eos_kolibri_config.set('KOLIBRI_USER', kolibri_user)
-eos_kolibri_config.set('KOLIBRI_USER_HOME', kolibri_user_home)
 eos_kolibri_config.set('KOLIBRI_DATA_DIR', kolibri_data_dir)
 eos_kolibri_config.set('KOLIBRI_FLATPAK_ID', kolibri_flatpak_id)
 eos_kolibri_config.set('KOLIBRI_DAEMON_SERVICE', kolibri_daemon_service)
