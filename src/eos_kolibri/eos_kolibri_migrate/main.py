@@ -194,7 +194,7 @@ def main():
     if os.geteuid() != 0:
         logging.error("This script needs to be run as root")
         return 1
-    
+
     try:
         kolibri_pwd = pwd.getpwnam(config.KOLIBRI_USER)
     except KeyError:
@@ -213,3 +213,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+

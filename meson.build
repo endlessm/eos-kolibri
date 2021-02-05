@@ -2,13 +2,18 @@ project('eos-kolibri',
   meson_version: '>= 0.50.0',
 )
 
+python = import('python')
+
+python_installation = python.find_installation('python3')
+
 bindir = join_paths(get_option('prefix'), get_option('bindir'))
 datadir = join_paths(get_option('prefix'), get_option('datadir'))
 libdir = join_paths(get_option('prefix'), get_option('libdir'))
 libexecdir = join_paths(get_option('prefix'), get_option('libexecdir'))
 
-systemd_dep = dependency('systemd', required: false)
+python_install_dir = python_installation.get_install_dir()
 
+systemd_dep = dependency('systemd', required: false)
 if systemd_dep.found() and get_option('prefix') == systemd_dep.get_pkgconfig_variable('prefix')
     _default_systemd_system_unit_dir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir')
     _default_systemd_sysusers_dir = systemd_dep.get_pkgconfig_variable('sysusersdir')
@@ -59,6 +64,7 @@ eos_kolibri_config = configuration_data()
 eos_kolibri_config.set('bindir', bindir)
 eos_kolibri_config.set('libexecdir', libexecdir)
 eos_kolibri_config.set('PYTHON', 'python3')
+eos_kolibri_config.set('PYTHON_INSTALL_DIR', python_install_dir)
 eos_kolibri_config.set('KOLIBRI_USER', kolibri_user)
 eos_kolibri_config.set('KOLIBRI_USER_HOME', kolibri_user_home)
 eos_kolibri_config.set('KOLIBRI_DATA_DIR', kolibri_data_dir)
