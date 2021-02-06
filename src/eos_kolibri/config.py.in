@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-KOLIBRI_APP_ID = 'org.learningequality.Kolibri'
-KOLIBRI_SYSTEMD_UNIT_NAME = 'eos-kolibri-system-helper'
+KOLIBRI_FLATPAK_ID = '@KOLIBRI_FLATPAK_ID@'
+KOLIBRI_SYSTEMD_SERVICE_NAME = 'dbus-@KOLIBRI_DAEMON_SERVICE@.service'
 
 KOLIBRI_USER = '@KOLIBRI_USER@'
 KOLIBRI_DATA_DIR = '@KOLIBRI_DATA_DIR@'
