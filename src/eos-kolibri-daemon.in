@@ -10,4 +10,5 @@
   --command=/app/libexec/kolibri-gnome/kolibri-daemon \
   @KOLIBRI_FLATPAK_ID@ \
   --system \
+  --stop-timeout=300 \
   $@
