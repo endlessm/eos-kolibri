@@ -29,36 +29,36 @@ KOLIBRI_DATA_FILES = (
 )
 
 
-def manage_kolibri_service(command):
-    if command not in ("start", "stop"):
-        raise ValueError(f"Invalid service command: {command}")
-
-    click.echo(f"Trying to {command} systemd unit: '{config.KOLIBRI_SYSTEMD_SERVICE_NAME}'...")
-    subprocess.check_call(["systemctl", command, config.KOLIBRI_SYSTEMD_SERVICE_NAME])
-
-
 @contextmanager
 def stop_kolibri_system_services():
     click.secho("\nStopping Kolibri...", dim=True)
+    subprocess.run(["killall", "-e", "-w", "kolibri-gnome"])
+    subprocess.run(["killall", "-e", "-w", "kolibri-search-provider"])
+    click.echo(
+        f"Trying to stop systemd unit: '{config.KOLIBRI_SYSTEMD_SERVICE_NAME}'..."
+    )
     try:
-        manage_kolibri_service("stop")
+        subprocess.check_call(
+            ["systemctl", "stop", config.KOLIBRI_SYSTEMD_SERVICE_NAME]
+        )
     except subprocess.CalledProcessError:
         raise click.ClickException("Error stopping Kolibri")
-    subprocess.run(["killall", "-e", "-w", "kolibri"])
+    subprocess.run(["killall", "-e", "-w", "kolibri-daemon"])
     click.echo()
     try:
         yield
     finally:
-        try:
-            manage_kolibri_service("start")
-        except subprocess.CalledProcessError:
-            click.secho("Error restarting Kolibri", fg="red")
+        # We could politely restart the service here, but we know it will start
+        # on its own.
+        pass
 
 
 @contextmanager
 def stop_kolibri_for_user(user):
-    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri"])
     click.secho(f"\nStopping Kolibri for '{user}'...", dim=True)
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-gnome"])
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-search-provider"])
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-daemon"])
     click.echo()
     try:
         yield
