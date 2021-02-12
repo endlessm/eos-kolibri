@@ -1,4 +1,4 @@
-subdir('eos_kolibri_tools')
+subdir('eos_kolibri')
 
 configure_file(
     input: 'eos-kolibri-migrate.in',

@@ -23,6 +23,7 @@ Depends:
     gir1.2-glib-2.0,
     ostree,
     python3,
+    python3-click,
     python3-gi
 Description:
     Tools and configuration to integrate the Kolibri flatpak with Endless OS
