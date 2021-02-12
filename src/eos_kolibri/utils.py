@@ -21,26 +21,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import click
 import os
-import sys
+import pwd
 
 from pathlib import Path
 
 
-def argparse_dir_path(string):
-    path = Path(string)
-    if path.is_dir():
-        return path
+class UserParamType(click.ParamType):
+    name = "username"
+
+    def __init__(self, default_current_user=False):
+        self.default_current_user = default_current_user
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, pwd.struct_passwd):
+            return value
+
+        try:
+            return pwd.getpwnam(value)
+        except KeyError as error:
+            self.fail(f"Could not find user {value}")
+
+    def __repr__(self):
+        return "UserParamType"
+
+
+def get_default_user():
+    if os.environ.get("SUDO_UID"):
+        default_uid = int(os.environ.get("SUDO_UID"))
     else:
-        raise NotADirectoryError(path)
+        default_uid = os.geteuid()
+    return pwd.getpwuid(default_uid)
 
 
-def get_backup_path(path):
-    backup_path = path.with_suffix('.bak')
+def get_backup_path(path, suffix=".bak"):
+    backup_path = path.with_suffix(suffix)
     backup_count = 0
     while backup_path.exists():
         backup_count += 1
-        backup_path = path.with_suffix('.bak{}'.format(backup_count))
+        backup_path = path.with_suffix(f"{suffix}{backup_count}")
     return backup_path
 
 

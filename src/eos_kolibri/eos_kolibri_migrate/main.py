@@ -7,210 +7,191 @@
 # Authors:
 #  Dylan McCall <dylan@endlessm.com>
 
-import argparse
-import logging
-import os
-import pwd
-import shutil
-import signal
-import subprocess
-import sys
+import click
 
+import os
+import shutil
+import subprocess
+
+from contextlib import contextmanager
 from pathlib import Path
 
-from . import config
-from .utils import argparse_dir_path, get_backup_path, recursive_chown
+from .. import config
+from ..utils import UserParamType, get_default_user, get_backup_path, recursive_chown
 
-KOLIBRI_DATA_DIR = os.environ.get('KOLIBRI_HOME', config.KOLIBRI_DATA_DIR)
 
-# We ignore the following files from Kolibri's data directory:
-# - .data_version
-# - logs/
-# - server.pid
-# - sessions/
-# - static/
+KOLIBRI_FLATPAK_DATA_PATH = Path(".var/app", config.KOLIBRI_FLATPAK_ID, "data/kolibri")
 
+# These files are sufficient to identify a Kolibri installation
 KOLIBRI_DATA_FILES = (
-    'content',
-    'db.sqlite3',
-    'job_storage.sqlite3',
-    'kolibri_settings.json',
-    'notifications.sqlite3'
+    "content",
+    "db.sqlite3",
 )
 
-def terminate_kolibri_server_process():
-    print("Stopping the Kolibri server...")
-    kolibri_pids = []
+
+@contextmanager
+def stop_kolibri_system_services():
+    click.secho("\nStopping Kolibri...", dim=True)
+    subprocess.run(["killall", "-e", "-w", "kolibri-gnome"])
+    subprocess.run(["killall", "-e", "-w", "kolibri-search-provider"])
+    click.echo(
+        f"Trying to stop systemd unit: '{config.KOLIBRI_SYSTEMD_SERVICE_NAME}'..."
+    )
     try:
-        kolibri_pids = subprocess.check_output(['/usr/bin/pgrep', '-x', 'kolibri']).split()
-    except subprocess.CalledProcessError:
-        print("The Kolibri server is not running. Nothing to do.")
-        return
-
-    for pid in kolibri_pids:
-        logging.info("Terminating process with PID {}...".format(pid))
-        os.kill(int(pid), signal.SIGTERM)
-
-
-def manage_kolibri_services(command, types=['socket', 'service']):
-    if command != 'start' and command != 'stop':
-        raise ValueError("Invalid service command: {}".format(command))
-
-    for service_type in types:
-        logging.info(
-            "Trying to {} systemd {} unit: '{}'...".format(
-                command, service_type, config.KOLIBRI_SYSTEMD_UNIT_NAME
-            )
+        subprocess.check_call(
+            ["systemctl", "stop", config.KOLIBRI_SYSTEMD_SERVICE_NAME]
         )
-        subprocess.check_call([
-            '/usr/bin/systemctl',
-            command,
-            '{}.{}'.format(config.KOLIBRI_SYSTEMD_UNIT_NAME, service_type)
-        ])
-
-
-def stop_kolibri_services():
-    print("Stopping Kolibri system services...")
-    manage_kolibri_services('stop')
-
-
-def start_kolibri_services():
-    print("Starting Kolibri system services...")
-    manage_kolibri_services('start', ['socket'])
-
-
-def run_migrate(source_path=None, target_path=None, interactive=None, replace=False, kolibri_pwd=None):
-    if not source_path:
-        # TODO: discover Kolibri installs in desktop user homes
-        pass
-
-    if not source_path:
-        logging.error("Must specify a valid source directory (set to {})".format(source_path))
-        return 1
-
-    if not target_path:
-        logging.error("Must specify a valid target directory")
-        return 1
-
-    if not target_path.exists():
-        target_path.mkdir(parents=True)
-    elif not os.listdir(target_path):
-        # Use the existing empty directory. Nothing to do here.
-        pass
-    elif replace:
-        backup_path = get_backup_path(target_path)
-        logging.info("Backing up original target directory to '{}'".format(backup_path))
-        target_path.rename(backup_path)
-        target_path.mkdir(parents=True)
-    else:
-        logging.error("Target directory ('{}') already exists".format(target_path))
-        return 1
-
-    # Stop local Kolibri services and daemon, if running.
-    stop_kolibri_services()
-    terminate_kolibri_server_process()
-
-    logging.info("Copying files from '{}'".format(source_path))
-
-    for file_name in KOLIBRI_DATA_FILES:
-        source_file_path = Path(source_path, file_name)
-        target_file_path = Path(target_path, file_name)
-
-        if source_file_path.is_dir():
-            shutil.copytree(source_file_path, target_file_path, symlinks=True)
-        elif source_file_path.exists():
-            shutil.copy2(source_file_path, target_file_path, follow_symlinks=True)
-        else:
-            logging.warning("Source file does not exist: '{}'".format(source_file_path))
-
-    recursive_chown(target_path, kolibri_pwd.pw_uid, kolibri_pwd.pw_gid)
-
-    # Restart the Kolibri socket service.
-    start_kolibri_services()
-
-    logging.info("Successfully moved Kolibri data to {}".format(target_path))
-
-
-def sigint_handler(signal, frame):
-    logging.error("Process interrupted")
-    sys.exit(1)
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        prog='eos-kolibri-migrate',
-        description="Move Kolibri instances to common system location (needs root access)"
-    )
-
-    parser.add_argument(
-        '--no-interactive',
-        dest='interactive',
-        action='store_false',
-        help="Disables interactive prompts"
-    )
-
-    parser.add_argument(
-        '-v', '--verbose',
-        dest='verbose',
-        action='store_true',
-        help="Prints informative messages"
-    )
-
-    parser.add_argument(
-        '--debug',
-        dest='debug',
-        action='store_true',
-        help="Prints informative plus debug messages"
-    )
-
-    parser.add_argument(
-        '--target',
-        dest='target',
-        help="Path to the target Kolibri data directory",
-        type=argparse_dir_path,
-        default=KOLIBRI_DATA_DIR
-    )
-
-    parser.add_argument(
-        '--replace',
-        dest='replace',
-        action='store_true',
-        help="Replace the target directory"
-    )
-
-    parser.add_argument(
-        'source',
-        nargs='?',
-        type=argparse_dir_path,
-        help="Path to the source Kolibri data directory"
-    )
-
-    parsed_args = parser.parse_args()
-    if parsed_args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    elif parsed_args.verbose:
-        logging.basicConfig(level=logging.INFO)
-
-    if os.geteuid() != 0:
-        logging.error("This script needs to be run as root")
-        return 1
-
+    except subprocess.CalledProcessError:
+        raise click.ClickException("Error stopping Kolibri")
+    subprocess.run(["killall", "-e", "-w", "kolibri-daemon"])
+    click.echo()
     try:
-        kolibri_pwd = pwd.getpwnam(config.KOLIBRI_USER)
-    except KeyError:
-        logging.error("Could not find Kolibri user ('{}')".format(config.KOLIBRI_USER))
+        yield
+    finally:
+        # We could politely restart the service here, but we know it will start
+        # on its own.
+        pass
 
-    signal.signal(signal.SIGINT, sigint_handler)
 
-    return run_migrate(
-        source_path=parsed_args.source,
-        target_path=parsed_args.target,
-        interactive=parsed_args.interactive,
-        replace=parsed_args.replace,
-        kolibri_pwd=kolibri_pwd
+@contextmanager
+def stop_kolibri_for_user(user):
+    click.secho(f"\nStopping Kolibri for '{user}'...", dim=True)
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-gnome"])
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-search-provider"])
+    subprocess.run(["killall", "-e", "-w", "-u", user, "kolibri-daemon"])
+    click.echo()
+    try:
+        yield
+    finally:
+        pass
+
+
+def kolibri_data_exists(kolibri_data_path):
+    data_file_paths = map(kolibri_data_path.joinpath, KOLIBRI_DATA_FILES)
+    return all(path.exists() for path in data_file_paths)
+
+
+@click.command(name="eos-kolibri-migrate")
+@click.option(
+    "--user",
+    type=UserParamType(),
+    default=get_default_user,
+    help="Username to migrate data for",
+)
+@click.option(
+    "--source",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+    help="Path to a personal Kolibri data directory",
+)
+@click.option(
+    "--target",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+    default=config.KOLIBRI_DATA_DIR,
+    help="Path to the system Kolibri data directory",
+)
+def main(user, source, target):
+    if source is None:
+        source_path = Path(user.pw_dir, KOLIBRI_FLATPAK_DATA_PATH)
+    else:
+        source_path = Path(source)
+
+    target_path = Path(target)
+
+    if not kolibri_data_exists(source_path):
+        click.echo(f"There is no Kolibri data in '{source_path}'")
+        click.secho(
+            "Nothing to do. There is no personal Kolibri home to migrate.", bold=True
+        )
+        return
+    else:
+        click.echo(f"Detected personal Kolibri home in '{source_path}'")
+
+    if not os.access(source_path.parent, os.W_OK):
+        click.secho(
+            f"The personal Kolibri home '{source_path}' cannot be renamed", fg="red"
+        )
+        raise click.ClickException(
+            "Please run this program like 'sudo eos-kolibri-migrate'"
+        )
+
+    do_copy_source_to_target = False
+    do_rename_source = False
+
+    target_backup_path = None
+    source_backup_path = None
+
+    if os.access(target_path.parent, os.W_OK):
+        needs_backup = bool(os.listdir(target_path))
+        if needs_backup:
+            click.echo(
+                f"There is already a system-wide Kolibri home at '{target_path}'"
+            )
+        do_copy_source_to_target = click.confirm(
+            "Would you like to copy your personal Kolibri data to the system-wide Kolibri home?"
+        )
+    else:
+        click.secho(
+            f"The system Kolibri home '{target_path}' cannot be renamed", fg="red"
+        )
+        click.echo("You may need to run this program like 'sudo eos-kolibri-migrate'")
+
+    do_rename_source = do_copy_source_to_target or click.confirm(
+        "Would you like to enable system-wide Kolibri without migrating your personal Kolibri data?"
     )
 
+    if do_copy_source_to_target:
+        with stop_kolibri_system_services():
+            target_backup_path = migrate_copy_source_to_target(
+                source_path, target_path, needs_backup
+            )
+            source_backup_path = migrate_rename_source(source_path)
+    elif do_rename_source:
+        with stop_kolibri_for_user(user.pw_name):
+            source_backup_path = migrate_rename_source(source_path)
+    else:
+        raise click.ClickException("Nothing to do")
 
-if __name__ == '__main__':
-    sys.exit(main())
+    click.echo()
 
+    if target_backup_path:
+        click.echo(
+            f"The original system-wide Kolibri home has been backed up to '{target_backup_path}'\n"
+        )
+
+    if source_backup_path:
+        click.echo(
+            f"Your personal Kolibri home has been backed up to '{source_backup_path}'\n"
+        )
+
+    click.secho("You are now using system-wide Kolibri", bold=True)
+
+
+def migrate_copy_source_to_target(source_path, target_path, needs_backup):
+    target_stat = target_path.stat()
+
+    click.secho("Copying files...", dim=True)
+    working_path = get_backup_path(target_path, ".new")
+
+    shutil.copytree(source_path, working_path, symlinks=True)
+    recursive_chown(working_path, target_stat.st_uid, target_stat.st_gid)
+
+    if needs_backup:
+        backup_path = get_backup_path(target_path)
+        target_path.rename(backup_path)
+        working_path.rename(target_path)
+    else:
+        backup_path = None
+        working_path.replace(target_path)
+
+    click.echo(f"Successfully copied personal Kolibri home to '{target_path}'")
+    return backup_path
+
+
+def migrate_rename_source(source_path):
+    backup_path = get_backup_path(source_path)
+    source_path.rename(backup_path)
+    return backup_path
+
+
+if __name__ == "__main__":
+    main()
