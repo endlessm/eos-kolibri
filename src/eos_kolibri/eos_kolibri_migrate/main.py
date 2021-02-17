@@ -108,7 +108,7 @@ def main(user, source, target):
 
     if not os.access(source_path.parent, os.W_OK):
         click.secho(
-            f"The personal Kolibri home '{source_path}' cannot be renamed", fg="red"
+            f"The personal Kolibri home '{source_path}' cannot be changed", fg="red"
         )
         raise click.ClickException(
             "Please run this program like 'sudo eos-kolibri-migrate'"
@@ -131,7 +131,7 @@ def main(user, source, target):
         )
     else:
         click.secho(
-            f"The system Kolibri home '{target_path}' cannot be renamed", fg="red"
+            f"The system Kolibri home '{target_path}' cannot be changed", fg="red"
         )
         click.echo("You may need to run this program like 'sudo eos-kolibri-migrate'")
 
