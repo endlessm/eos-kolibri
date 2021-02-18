@@ -34,13 +34,6 @@ option(
 )
 
 option(
-    'kolibri_user_home',
-    type: 'string',
-    value: '',
-    description: 'home directory for the system user [default=$localstatedir/lib/kolibri]'
-)
-
-option(
     'kolibri_flatpak_id',
     type: 'string',
     value: 'org.learningequality.Kolibri',

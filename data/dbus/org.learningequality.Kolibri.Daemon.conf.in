@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?> <!-- -*- XML -*- -->
 <!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
 <busconfig>
-  <!-- Only @KOLIBRI_USER@ can own the service -->
-  <policy user="@KOLIBRI_USER@">
-    <allow own="@KOLIBRI_DAEMON_SERVICE@" />
-  </policy>
-
   <!-- Any user can call into the service -->
   <policy context="default">
+    <allow own="@KOLIBRI_DAEMON_SERVICE@" />
     <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.freedesktop.DBus.Introspectable" />
     <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.freedesktop.DBus.Properties" />
     <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.learningequality.Kolibri.Daemon" />

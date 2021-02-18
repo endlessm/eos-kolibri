@@ -1,6 +1,10 @@
 #!/bin/sh
 
-: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
+: ${STATE_DIRECTORY:=/var/lib/kolibri}
+
+export KOLIBRI_HOME="${STATE_DIRECTORY}/data"
+
+mkdir -p "${KOLIBRI_HOME}"
 
 @bindir@/flatpak run \
    --no-desktop \
