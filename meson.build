@@ -1,7 +1,9 @@
-project('eos-kolibri',
+project('eos-kolibri', ['c'],
   meson_version: '>= 0.50.0',
+  version: '1.0'
 )
 
+gnome = import('gnome')
 python = import('python')
 
 python_installation = python.find_installation('python3')
@@ -60,6 +62,8 @@ kolibri_data_dir = join_paths(kolibri_user_home, 'data')
 kolibri_flatpak_id = get_option('kolibri_flatpak_id')
 kolibri_daemon_service = '@0@.Daemon'.format(kolibri_flatpak_id)
 
+system_helper_application_id = 'org.endlessos.KolibriSystemHelper'
+
 eos_kolibri_config = configuration_data()
 eos_kolibri_config.set('bindir', bindir)
 eos_kolibri_config.set('libexecdir', libexecdir)
@@ -73,3 +77,5 @@ eos_kolibri_config.set('KOLIBRI_DAEMON_SERVICE', kolibri_daemon_service)
 
 subdir('data')
 subdir('src')
+
+subdir('tests')

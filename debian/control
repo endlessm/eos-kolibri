@@ -5,6 +5,7 @@ Maintainer: Dylan McCall <dylan@endlessm.com>
 Build-Depends:
     debhelper (>=9),
     dh-autoreconf,
+    libglib2.0-dev,
     meson (>= 0.50.0),
     pkg-config,
     python3-setuptools,
