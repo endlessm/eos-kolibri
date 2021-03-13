@@ -1,0 +1,4 @@
+#!/bin/bash
+
+XDG_DATA_DIRS="@KOLIBRI_DATA_DIR@/content/xdg/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+echo "XDG_DATA_DIRS=$XDG_DATA_DIRS"

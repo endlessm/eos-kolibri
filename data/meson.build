@@ -3,4 +3,4 @@ subdir('environment.d')
 subdir('systemd')
 subdir('sysusers.d')
 subdir('tmpfiles.d')
-
+subdir('user-environment-generators')

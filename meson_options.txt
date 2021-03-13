@@ -27,6 +27,13 @@ option(
 )
 
 option(
+    'systemd_user_environment_generators_dir',
+    type: 'string',
+    value: '',
+    description: 'systemd user environment generators directory [default=$libdir/systemd/system/user-environment-generators]'
+)
+
+option(
     'kolibri_user',
     type: 'string',
     value: 'kolibri',

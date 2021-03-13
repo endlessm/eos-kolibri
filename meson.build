@@ -9,22 +9,27 @@ python_installation = python.find_installation('python3')
 bindir = join_paths(get_option('prefix'), get_option('bindir'))
 datadir = join_paths(get_option('prefix'), get_option('datadir'))
 libdir = join_paths(get_option('prefix'), get_option('libdir'))
+libdir_noarch = join_paths(get_option('prefix'), 'lib')
 libexecdir = join_paths(get_option('prefix'), get_option('libexecdir'))
 
 python_install_dir = python_installation.get_install_dir()
 
 systemd_dep = dependency('systemd', required: false)
 if systemd_dep.found() and get_option('prefix') == systemd_dep.get_pkgconfig_variable('prefix')
+    systemd_util_dir = systemd_dep.get_pkgconfig_variable('systemdutildir')
     _default_systemd_system_unit_dir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir')
     _default_systemd_sysusers_dir = systemd_dep.get_pkgconfig_variable('sysusersdir')
     _default_systemd_tmpfiles_dir = systemd_dep.get_pkgconfig_variable('tmpfilesdir')
     _default_systemd_environment_dir = join_paths(get_option('prefix'), 'lib', 'environment.d')
 else
-    _default_systemd_system_unit_dir = join_paths(libdir, 'systemd', 'system')
-    _default_systemd_sysusers_dir = join_paths(libdir, 'sysusers.d')
-    _default_systemd_tmpfiles_dir = join_paths(libdir, 'tmpfiles.d')
-    _default_systemd_environment_dir = join_paths(libdir, 'environment.d')
+    systemd_util_dir = join_paths(libdir_noarch, 'systemd')
+    _default_systemd_system_unit_dir = join_paths(systemd_util_dir, 'system')
+    _default_systemd_sysusers_dir = join_paths(libdir_noarch, 'sysusers.d')
+    _default_systemd_tmpfiles_dir = join_paths(libdir_noarch, 'tmpfiles.d')
+    _default_systemd_environment_dir = join_paths(libdir_noarch, 'environment.d')
 endif
+
+_default_systemd_user_environment_generators_dir = join_paths(systemd_util_dir, 'user-environment-generators')
 
 systemd_system_unit_dir = get_option('systemd_system_unit_dir')
 if systemd_system_unit_dir == ''
@@ -44,6 +49,11 @@ endif
 systemd_environment_dir = get_option('systemd_environment_dir')
 if systemd_environment_dir == ''
     systemd_environment_dir = _default_systemd_environment_dir
+endif
+
+systemd_user_environment_generators_dir = get_option('systemd_user_environment_generators_dir')
+if systemd_user_environment_generators_dir == ''
+    systemd_user_environment_generators_dir = _default_systemd_user_environment_generators_dir
 endif
 
 dbus_system_bus_services_dir = join_paths(datadir, 'dbus-1', 'system-services')
