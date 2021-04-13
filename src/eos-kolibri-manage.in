@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+if [ "$EUID" -ne "0" ]; then
+  echo "$0 is not running as root. Try using sudo."
+  exit 2
+fi
+
+: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
+
+# Only run eos-kolibri-manage if Kolibri has been initialized
+# Some of Kolibri's first run code is in the desktop application, so this
+# helps to avoid conflicts.
+
+if [ ! -f "${KOLIBRI_HOME}/db.sqlite3" ]; then
+  echo "There is no Kolibri database in '${KOLIBRI_HOME}'."
+  echo "Try running Kolibri before running this command."
+  exit 1
+fi
+
+runuser -u @KOLIBRI_USER@ -- flatpak run \
+  --no-desktop \
+  --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
+  --filesystem="${KOLIBRI_HOME}" \
+  --command=/app/bin/kolibri \
+  @KOLIBRI_FLATPAK_ID@ \
+  manage \
+  $@
+
