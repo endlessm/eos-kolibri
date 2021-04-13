@@ -20,6 +20,9 @@ per-session one.
 
 ## eos-kolibri-tools
 
-Provides tools to manage the system-wide Kolibri installation. In particular,
-provides `eos-kolibri-migrate`, which is a simple way to copy Kolibri data
-from a desktop user's Kolibri instance to the system Kolibri instance.
+Provides tools to manage the system-wide Kolibri installation:
+
+- `eos-kolibri-manage`: Run a Kolibri management command inside Endless OS's
+  default Kolibri instance.
+- `eos-kolibri-migrate`: Copy Kolibri data from a desktop user's Kolibri
+  instance to the system Kolibri instance.

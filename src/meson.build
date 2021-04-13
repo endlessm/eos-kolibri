@@ -10,6 +10,15 @@ configure_file(
 )
 
 configure_file(
+    input: 'eos-kolibri-manage.in',
+    output: 'eos-kolibri-manage',
+    configuration: eos_kolibri_config,
+    install: true,
+    install_dir: bindir,
+    install_mode: 'rwxr-xr-x'
+)
+
+configure_file(
     input: 'eos-kolibri-daemon.in',
     output: 'eos-kolibri-daemon',
     configuration: eos_kolibri_config,
