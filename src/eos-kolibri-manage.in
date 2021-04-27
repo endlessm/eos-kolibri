@@ -17,14 +17,22 @@ if [ ! -f "${KOLIBRI_HOME}/db.sqlite3" ]; then
   exit 1
 fi
 
-if [[ "$1" == *"/"* ]]; then
+case "$1" in
+*"/"*)
   FLATPAK_COMMAND="$1"
   SUBCOMMAND=""
   shift
-else
+  ;;
+"listcontent")
+  FLATPAK_COMMAND="/app/bin/kolibri-listcontent.py"
+  SUBCOMMAND=""
+  shift
+  ;;
+*)
   FLATPAK_COMMAND="/app/bin/kolibri"
   SUBCOMMAND="manage"
-fi
+  ;;
+esac
 
 runuser -u @KOLIBRI_USER@ -- flatpak run \
   --no-desktop \
@@ -32,6 +40,6 @@ runuser -u @KOLIBRI_USER@ -- flatpak run \
   --filesystem="${KOLIBRI_HOME}" \
   --command="${FLATPAK_COMMAND}" \
   @KOLIBRI_FLATPAK_ID@ \
-  "${SUBCOMMAND}" \
+  ${SUBCOMMAND} \
   $@
 
