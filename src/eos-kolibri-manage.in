@@ -5,7 +5,7 @@ if [ "$EUID" -ne "0" ]; then
   exit 2
 fi
 
-: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
+: "${KOLIBRI_HOME:=@KOLIBRI_DATA_DIR@}"
 
 # Only run eos-kolibri-manage if Kolibri has been initialized
 # Some of Kolibri's first run code is in the desktop application, so this
@@ -41,5 +41,5 @@ runuser -u @KOLIBRI_USER@ -- flatpak run \
   --command="${FLATPAK_COMMAND}" \
   @KOLIBRI_FLATPAK_ID@ \
   ${SUBCOMMAND} \
-  $@
+  "$@"
 
