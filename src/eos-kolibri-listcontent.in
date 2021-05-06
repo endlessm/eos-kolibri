@@ -5,7 +5,7 @@ if [ "$EUID" -ne "0" ]; then
   exit 2
 fi
 
-: "${KOLIBRI_HOME:=@KOLIBRI_DATA_DIR@}"
+: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
 
 # Only run eos-kolibri-manage if Kolibri has been initialized
 # Some of Kolibri's first run code is in the desktop application, so this
@@ -17,29 +17,12 @@ if [ ! -f "${KOLIBRI_HOME}/db.sqlite3" ]; then
   exit 1
 fi
 
-case "$1" in
-*"/"*)
-  FLATPAK_COMMAND="$1"
-  SUBCOMMAND=""
-  shift
-  ;;
-"listcontent")
-  shift
-  @bindir@/eos-kolibri-listcontent $@
-  exit
-  ;;
-*)
-  FLATPAK_COMMAND="/app/bin/kolibri"
-  SUBCOMMAND="manage"
-  ;;
-esac
-
-runuser -u @KOLIBRI_USER@ -- flatpak run \
+cat @libexecdir@/eos-kolibri-listcontent.py | runuser -u @KOLIBRI_USER@ -- flatpak run \
   --no-desktop \
   --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
   --filesystem="${KOLIBRI_HOME}" \
-  --command="${FLATPAK_COMMAND}" \
+  --command="python3" \
   @KOLIBRI_FLATPAK_ID@ \
-  ${SUBCOMMAND} \
-  "$@"
+  - \
+  $@
 
