@@ -24,9 +24,9 @@ case "$1" in
   shift
   ;;
 "listcontent")
+  FLATPAK_COMMAND="/app/bin/kolibri-listcontent.py"
+  SUBCOMMAND=""
   shift
-  @bindir@/eos-kolibri-listcontent $@
-  exit
   ;;
 *)
   FLATPAK_COMMAND="/app/bin/kolibri"
