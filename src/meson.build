@@ -18,11 +18,6 @@ configure_file(
     install_mode: 'rwxr-xr-x'
 )
 
-install_data(
-    'eos-kolibri-listcontent.py',
-    install_dir: libexecdir
-)
-
 configure_file(
     input: 'eos-kolibri-listcontent.in',
     output: 'eos-kolibri-listcontent',
