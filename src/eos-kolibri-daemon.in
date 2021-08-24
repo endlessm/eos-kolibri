@@ -7,6 +7,7 @@ flatpak run \
   --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
   --filesystem="${KOLIBRI_HOME}" \
   --system-own-name=@KOLIBRI_DAEMON_SERVICE@ \
+  --system-talk-name=org.freedesktop.Accounts \
   --command=/app/libexec/kolibri-gnome/kolibri-daemon \
   @KOLIBRI_FLATPAK_ID@ \
   --system \
