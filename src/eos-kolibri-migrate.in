@@ -2,4 +2,5 @@
 
 export PYTHONPATH=@PYTHON_INSTALL_DIR@
 
-@PYTHON@ -m "eos_kolibri.eos_kolibri_migrate.main" $@
+@PYTHON@ -m "eos_kolibri.eos_kolibri_migrate.main" "$@"
+

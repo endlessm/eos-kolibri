@@ -26,3 +26,5 @@ Provides tools to manage the system-wide Kolibri installation:
   default Kolibri instance.
 - `eos-kolibri-migrate`: Copy Kolibri data from a desktop user's Kolibri
   instance to the system Kolibri instance.
+- `eos-kolibri-listcontent`: List content installed in Kolibri. This is useful
+  to generate configuration for eos-image-builder.

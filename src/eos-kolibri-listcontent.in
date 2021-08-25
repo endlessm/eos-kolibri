@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+@bindir@/eos-kolibri-manage listcontent $@

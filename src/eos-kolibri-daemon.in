@@ -1,6 +1,6 @@
 #!/bin/sh
 
-: ${KOLIBRI_HOME:="@KOLIBRI_DATA_DIR@"}
+: "${KOLIBRI_HOME:=@KOLIBRI_DATA_DIR@}"
 
 flatpak run \
   --no-desktop \
@@ -11,4 +11,5 @@ flatpak run \
   @KOLIBRI_FLATPAK_ID@ \
   --system \
   --stop-timeout=300 \
-  $@
+  "$@"
+

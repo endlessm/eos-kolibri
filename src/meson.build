@@ -19,6 +19,15 @@ configure_file(
 )
 
 configure_file(
+    input: 'eos-kolibri-listcontent.in',
+    output: 'eos-kolibri-listcontent',
+    configuration: eos_kolibri_config,
+    install: true,
+    install_dir: bindir,
+    install_mode: 'rwxr-xr-x'
+)
+
+configure_file(
     input: 'eos-kolibri-daemon.in',
     output: 'eos-kolibri-daemon',
     configuration: eos_kolibri_config,
