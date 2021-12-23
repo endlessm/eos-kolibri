@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if flatpak info --system --show-ref @KOLIBRI_FLATPAK_ID@ 2>/dev/null; then
+if flatpak info --system --show-ref @KOLIBRI_FLATPAK_ID@ 1>/dev/null 2>/dev/null; then
   XDG_DATA_DIRS="@KOLIBRI_DATA_DIR@/content/xdg/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   echo "XDG_DATA_DIRS=$XDG_DATA_DIRS"
 fi
