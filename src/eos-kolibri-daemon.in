@@ -2,7 +2,7 @@
 
 : "${KOLIBRI_HOME:=@KOLIBRI_DATA_DIR@}"
 
-flatpak run \
+exec flatpak run \
   --no-desktop \
   --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
   --filesystem="${KOLIBRI_HOME}" \
