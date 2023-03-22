@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+
+# Copyright © 2023 Endless OS Foundation, LLC
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+from argparse import ArgumentParser
+from gi.repository import Gio
+import logging
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import time
+
+logger = logging.getLogger(os.path.basename(__file__))
+
+
+def system_server_proxy():
+    bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+    return Gio.DBusProxy.new_sync(
+        bus,
+        Gio.DBusProxyFlags.NONE,
+        None,  # interface info
+        'org.learningequality.Kolibri.Daemon',
+        '/org/learningequality/Kolibri/Daemon/Main',
+        'org.learningequality.Kolibri.Daemon',
+    )
+
+
+def get_system_kolibri_home(timeout=10):
+    deadline = time.time() + timeout
+    while True:
+        proxy = system_server_proxy()
+        homedir = proxy.get_cached_property('KolibriHome').unpack()
+        logger.debug(f'System Kolibri homedir: {homedir}')
+        if homedir != '':
+            return homedir
+        if time.time() >= deadline:
+            raise Exception(
+                f'Cound not determine system Kolibri homedir in {timeout} '
+                'seconds'
+            )
+        time.sleep(0.5)
+
+
+def run(cmd, check=True, **kwargs):
+    cmdstr = shlex.join(cmd)
+    logger.debug(f'> {cmdstr}')
+    return subprocess.run(cmd, check=check, **kwargs)
+
+
+def filter_logs(output):
+    log_pattern = re.compile('^(CRITICAL|ERROR|WARNING|INFO|DEBUG)')
+    for line in output.splitlines(keepends=True):
+        if ord(line[0]) == 0o33:
+            continue
+        if log_pattern.match(line):
+            continue
+        yield line
+
+
+def run_kolibri(kolibri_home, *args, program='/app/bin/kolibri', **kwargs):
+    cmd = (
+        'flatpak',
+        'run',
+        '--no-desktop',
+        '--die-with-parent',
+        f'--env=KOLIBRI_HOME={kolibri_home}',
+        '--env=KOLIBRI_NO_FILE_BASED_LOGGING=true',
+        f'--filesystem={kolibri_home}',
+        f'--command={program}',
+        'org.learningequality.Kolibri',
+    ) + args
+    return run(cmd, **kwargs)
+
+
+def main():
+    ap = ArgumentParser(description='Export Kolibri content')
+    ap.add_argument(
+        'dir',
+        metavar='DIR',
+        help='path to the Kolibri content to export to',
+    )
+    ap.set_defaults(log_level=logging.INFO)
+    ap.add_argument(
+        '--debug',
+        dest='log_level',
+        action='store_const',
+        const=logging.DEBUG,
+        help='enable debugging messages',
+    )
+
+    args = ap.parse_args()
+    logging.basicConfig(level=args.log_level)
+
+    kolibri_home = os.path.realpath(args.dir)
+    kolibri_db = os.path.join(kolibri_home, 'db.sqlite3')
+    kolibri_content = os.path.join(kolibri_home, 'content')
+    try:
+        logger.debug(f'Deleting existing Kolibri database {kolibri_db}')
+        os.unlink(kolibri_db)
+    except FileNotFoundError:
+        pass
+    try:
+        logger.debug(f'Deleting existing Kolibri content {kolibri_content}')
+        shutil.rmtree(kolibri_content)
+    except FileNotFoundError:
+        pass
+
+    logger.info('Copying content from system Kolibri instance')
+    os.makedirs(kolibri_home, exist_ok=True)
+    system_kolibri_home = get_system_kolibri_home()
+    system_content = os.path.join(system_kolibri_home, 'content')
+    shutil.copytree(system_content, kolibri_content)
+
+    logger.info('Scanning for content')
+    run_kolibri(kolibri_home, 'manage', 'scanforcontent')
+
+    logger.info('Saving channel content listing')
+    proc = run_kolibri(
+        kolibri_home,
+        '--format=INI',
+        program='/app/bin/kolibri-listcontent.py',
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    channels_ini = os.path.join(kolibri_home, 'channels.ini')
+    with open(channels_ini, 'w') as f:
+        f.writelines(filter_logs(proc.stdout))
+
+
+if __name__ == '__main__':
+    main()

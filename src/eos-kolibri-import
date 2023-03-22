@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+
+# Copyright © 2023 Endless OS Foundation, LLC
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+from argparse import ArgumentParser
+from configparser import ConfigParser
+from gi.repository import Gio
+import logging
+import os
+import shlex
+import shutil
+import subprocess
+import time
+from tempfile import TemporaryDirectory
+
+logger = logging.getLogger(os.path.basename(__file__))
+
+
+def log_command(cmd):
+    cmdstr = shlex.join(cmd)
+    logger.debug(f'> {cmdstr}')
+
+
+def system_server_proxy(autostart=False):
+    bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+    flags = Gio.DBusProxyFlags.NONE
+    if not autostart:
+        flags |= Gio.DBusProxyFlags.DO_NOT_AUTO_START
+    return Gio.DBusProxy.new_sync(
+        bus,
+        flags,
+        None,  # interface info
+        'org.learningequality.Kolibri.Daemon',
+        '/org/learningequality/Kolibri/Daemon/Main',
+        'org.learningequality.Kolibri.Daemon',
+    )
+
+
+def get_system_server_status():
+    proxy = system_server_proxy()
+    status = proxy.get_cached_property('Status')
+    if status is not None:
+        status = status.unpack()
+    logger.debug(f'System Kolibri server status: {status}')
+    return status
+
+
+def stop_system_server(timeout=20):
+    proxy = system_server_proxy()
+    if proxy.get_name_owner() is None:
+        return
+
+    logger.info('Stopping system Kolibri server')
+    proxy.call_sync(
+        'Stop',
+        None,  # parameters
+        Gio.DBusCallFlags.NO_AUTO_START,
+        timeout,
+    )
+
+
+def ensure_system_server_stopped(timeout=20):
+    status = get_system_server_status()
+    if status in (None, 'STOPPED'):
+        return
+
+    stop_system_server(timeout)
+
+    # Wait until the Status property becomes STOPPED.
+    deadline = time.time() + timeout
+    while True:
+        status = get_system_server_status()
+        if status in (None, 'STOPPED'):
+            return
+        if time.time() >= deadline:
+            raise Exception(
+                f'System Kolibri server did not stop in {timeout} seconds'
+            )
+        time.sleep(0.5)
+
+
+class KolibriServer:
+    def __init__(self, kolibri_home):
+        self._orig_home = os.path.realpath(kolibri_home)
+        self.url = None
+        self.home = TemporaryDirectory(prefix='kolibri-import-')
+        self._proc = None
+        self._start()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc, value, tb):
+        self._stop()
+        self.home.cleanup()
+        return None
+
+    def _start(self):
+        orig_db = os.path.join(self._orig_home, 'db.sqlite3')
+        orig_content = os.path.join(self._orig_home, 'content')
+        kolibri_home = self.home.name
+        kolibri_db = os.path.join(kolibri_home, 'db.sqlite3')
+        shutil.copy(orig_db, kolibri_db)
+
+        logger.info(f'Starting Kolibri server in {kolibri_home}')
+        start_cmd = (
+            'flatpak',
+            'run',
+            '--no-desktop',
+            '--die-with-parent',
+            f'--env=KOLIBRI_HOME={kolibri_home}',
+            f'--env=KOLIBRI_CONTENT_FALLBACK_DIRS={orig_content}',
+            '--env=KOLIBRI_NO_FILE_BASED_LOGGING=true',
+            f'--filesystem={kolibri_home}',
+            f'--filesystem={orig_content}',
+            '--command=/app/bin/kolibri',
+            'org.learningequality.Kolibri',
+            'start',
+            '--foreground',
+        )
+        log_command(start_cmd)
+        self._proc = subprocess.Popen(start_cmd)
+
+        port = self._get_server_port()
+        self.url = f'http://127.0.0.1:{port}'
+        logger.info(f'Kolibri server running at {self.url}')
+
+    def _read_server_port(self):
+        pid_path = os.path.join(self.home.name, 'server.pid')
+        logger.debug(f'Reading Kolibri server port from {pid_path}')
+
+        try:
+            with open(pid_path) as f:
+                lines = f.readlines(1024)
+        except FileNotFoundError:
+            return None
+
+        try:
+            port = int(lines[1].strip())
+        except (IndexError, ValueError):
+            return None
+
+        return port if port != 0 else None
+
+    def _get_server_port(self, timeout=10):
+        deadline = time.time() + timeout
+        while True:
+            port = self._read_server_port()
+            if port:
+                return port
+            if time.time() >= deadline:
+                raise Exception(
+                    f'Could not read server port in {timeout} seconds'
+                )
+            time.sleep(0.5)
+
+    def _stop(self):
+        if not self._proc:
+            return
+
+        # Note that this will not stop the server gracefully since the
+        # process is actually bwrap and it will kill kolibri with
+        # SIGKILL when using flatpak run --die-with-parent. To
+        # gracefully stop, we'd need to send SIGTERM to the process
+        # inside the sandbox. We don't care since this is all running in
+        # a temporary directory.
+        logger.info(f'Stopping Kolibri server {self._proc.pid}')
+        self._proc.terminate()
+        self._proc.wait(timeout=20)
+
+
+def import_channels(kolibri_home, server_url):
+    channels_ini = os.path.join(kolibri_home, 'channels.ini')
+    channels_config = ConfigParser()
+    if not channels_config.read([channels_ini]):
+        raise Exception(f'Could not read {channels_ini}')
+
+    channel_ids = channels_config.get(
+        'kolibri',
+        'install_channels',
+        fallback='',
+    ).split()
+    if not channel_ids:
+        logger.warning(f'No channels configured in {channels_ini}')
+        return
+
+    # Data can't be imported while the server is running.
+    ensure_system_server_stopped()
+
+    # Ensure the system database is migrated so all the import commands
+    # can be run with --skip-update.
+    logger.info('Migrating system Kolibri instance')
+    migrate_cmd = ('eos-kolibri-manage', 'migrate')
+    log_command(migrate_cmd)
+    subprocess.run(migrate_cmd, check=True)
+
+    for channel_id in channel_ids:
+        channel_sect = f'kolibri-{channel_id}'
+        include = channels_config.get(
+            channel_sect,
+            'include_node_ids',
+            fallback='',
+        ).split()
+        exclude = channels_config.get(
+            channel_sect,
+            'exclude_node_ids',
+            fallback='',
+        ).split()
+
+        channel_cmd = (
+            'eos-kolibri-manage',
+            '--skip-update',
+            'importchannel',
+            'network',
+            f'--baseurl={server_url}',
+            channel_id,
+        )
+        logger.info(f'Importing channel {channel_id}')
+        log_command(channel_cmd)
+        subprocess.run(channel_cmd, check=True)
+
+        content_cmd = [
+            'eos-kolibri-manage',
+            '--skip-update',
+            'importcontent',
+            '--fail-on-error',
+        ]
+        if include:
+            include_arg = ','.join(include)
+            content_cmd.append(f'--node_ids={include_arg}')
+        if exclude:
+            exclude_arg = ','.join(exclude)
+            content_cmd.append(f'--exclude_node_ids={exclude_arg}')
+        content_cmd += [
+            'network',
+            f'--baseurl={server_url}',
+            channel_id,
+        ]
+        logger.info(f'Importing channel {channel_id} content')
+        log_command(content_cmd)
+        subprocess.run(content_cmd, check=True)
+
+
+def main():
+    ap = ArgumentParser(description='Import Kolibri content')
+    ap.add_argument(
+        'dir',
+        metavar='DIR',
+        help='path to the Kolibri content to import',
+    )
+    ap.set_defaults(log_level=logging.INFO)
+    ap.add_argument(
+        '--debug',
+        dest='log_level',
+        action='store_const',
+        const=logging.DEBUG,
+        help='enable debugging messages',
+    )
+
+    args = ap.parse_args()
+    logging.basicConfig(level=args.log_level)
+    with KolibriServer(args.dir) as server:
+        import_channels(args.dir, server.url)
+
+
+if __name__ == '__main__':
+    main()
