@@ -35,3 +35,15 @@ configure_file(
     install_dir: libexecdir,
     install_mode: 'rwxr-xr-x'
 )
+
+install_data(
+    'eos-kolibri-export',
+    install_dir: bindir,
+    install_mode: 'rwxr-xr-x'
+)
+
+install_data(
+    'eos-kolibri-import',
+    install_dir: bindir,
+    install_mode: 'rwxr-xr-x'
+)
