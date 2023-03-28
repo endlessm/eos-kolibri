@@ -20,6 +20,8 @@ from .. import config
 from ..utils import UserParamType, get_default_user, get_backup_path, recursive_chown
 
 
+name = "eos-kolibri-migrate"
+
 KOLIBRI_FLATPAK_DATA_PATH = Path(".var/app", config.KOLIBRI_FLATPAK_ID, "data/kolibri")
 
 # These files are sufficient to identify a Kolibri installation
