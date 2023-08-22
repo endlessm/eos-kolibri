@@ -11,8 +11,8 @@ backend to run as a system service) as well as eos-kolibri-tools.
 
 Provides dbus and systemd configuration to integrate the Kolibri flatpak with
 Endless OS. It creates a `kolibri` system user, and dbus system service
-configuration for `org.learningequality.Kolibri.Daemon`. This dbus service uses
-the `org.learningequality.Kolibri` flatpak.
+configuration for `org.endlessos.Key.Daemon`. This dbus service uses
+the `org.endlessos.Key` flatpak.
 
 The `KOLIBRI_USE_SYSTEM_INSTANCE` environment variable is set globally so the
 Kolibri front-end knows to communicate with the system service rather than a

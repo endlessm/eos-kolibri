@@ -50,6 +50,6 @@ option(
 option(
     'kolibri_flatpak_id',
     type: 'string',
-    value: 'org.learningequality.Kolibri',
-    description: 'identifier for the Kolibri flatpak [default=org.learningequality.Kolibri]'
+    value: 'org.endlessos.Key',
+    description: 'identifier for the Kolibri flatpak [default=org.endlessos.Key]'
 )
