@@ -30,6 +30,8 @@ import subprocess
 import time
 from tempfile import TemporaryDirectory
 
+from eos_kolibri.config import KOLIBRI_FLATPAK_ID
+
 logger = logging.getLogger(os.path.basename(__file__))
 
 
@@ -47,9 +49,9 @@ def system_server_proxy(autostart=False):
         bus,
         flags,
         None,  # interface info
-        'org.learningequality.Kolibri.Daemon',
-        '/org/learningequality/Kolibri/Daemon/Main',
-        'org.learningequality.Kolibri.Daemon',
+        KOLIBRI_FLATPAK_ID + '.Daemon',
+        KOLIBRI_FLATPAK_ID.replace('.', '/') + '/Daemon/Main',
+        KOLIBRI_FLATPAK_ID + '.Daemon',
     )
 
 
@@ -131,7 +133,7 @@ class KolibriServer:
             f'--filesystem={kolibri_home}',
             f'--filesystem={orig_content}',
             '--command=/app/bin/kolibri',
-            'org.learningequality.Kolibri',
+            KOLIBRI_FLATPAK_ID,
             'start',
             '--foreground',
         )

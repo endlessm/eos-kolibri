@@ -29,6 +29,8 @@ import shutil
 import subprocess
 import time
 
+from eos_kolibri.config import KOLIBRI_FLATPAK_ID
+
 logger = logging.getLogger(os.path.basename(__file__))
 
 
@@ -38,9 +40,9 @@ def system_server_proxy():
         bus,
         Gio.DBusProxyFlags.NONE,
         None,  # interface info
-        'org.learningequality.Kolibri.Daemon',
-        '/org/learningequality/Kolibri/Daemon/Main',
-        'org.learningequality.Kolibri.Daemon',
+        KOLIBRI_FLATPAK_ID + '.Daemon',
+        KOLIBRI_FLATPAK_ID.replace('.', '/') + '/Daemon/Main',
+        KOLIBRI_FLATPAK_ID + '.Daemon',
     )
 
 
@@ -86,7 +88,7 @@ def run_kolibri(kolibri_home, *args, program='/app/bin/kolibri', **kwargs):
         '--env=KOLIBRI_NO_FILE_BASED_LOGGING=true',
         f'--filesystem={kolibri_home}',
         f'--command={program}',
-        'org.learningequality.Kolibri',
+        KOLIBRI_FLATPAK_ID,
     ) + args
     return run(cmd, **kwargs)
 
