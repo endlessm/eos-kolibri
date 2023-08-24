@@ -48,8 +48,22 @@ option(
 )
 
 option(
+    'endlesskey_user_home',
+    type: 'string',
+    value: '',
+    description: 'home directory for the Endless Key system user [default=$localstatedir/lib/endless-key]'
+)
+
+option(
     'kolibri_flatpak_id',
     type: 'string',
     value: 'org.learningequality.Kolibri',
     description: 'identifier for the Kolibri flatpak [default=org.learningequality.Kolibri]'
+)
+
+option(
+    'endlesskey_flatpak_id',
+    type: 'string',
+    value: 'org.endlessos.Key',
+    description: 'identifier for the Endless Key flatpak [default=org.endlessos.Key]'
 )

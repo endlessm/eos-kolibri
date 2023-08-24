@@ -81,5 +81,25 @@ eos_kolibri_config.set('KOLIBRI_DATA_DIR', kolibri_data_dir)
 eos_kolibri_config.set('KOLIBRI_FLATPAK_ID', kolibri_flatpak_id)
 eos_kolibri_config.set('KOLIBRI_DAEMON_SERVICE', kolibri_daemon_service)
 
+
+endlesskey_user_home = get_option('endlesskey_user_home')
+if endlesskey_user_home == ''
+    endlesskey_user_home = join_paths(get_option('prefix'), get_option('localstatedir'), 'lib', 'endless-key')
+endif
+endlesskey_data_dir = join_paths(endlesskey_user_home, 'data')
+endlesskey_flatpak_id = get_option('endlesskey_flatpak_id')
+endlesskey_daemon_service = '@0@.Daemon'.format(endlesskey_flatpak_id)
+
+endless_key_config = configuration_data()
+endless_key_config.set('bindir', bindir)
+endless_key_config.set('libexecdir', libexecdir)
+endless_key_config.set('PYTHON', 'python3')
+endless_key_config.set('PYTHON_INSTALL_DIR', python_install_dir)
+endless_key_config.set('KOLIBRI_USER', kolibri_user)
+endless_key_config.set('KOLIBRI_USER_HOME', endlesskey_user_home)
+endless_key_config.set('KOLIBRI_DATA_DIR', endlesskey_data_dir)
+endless_key_config.set('KOLIBRI_FLATPAK_ID', endlesskey_flatpak_id)
+endless_key_config.set('KOLIBRI_DAEMON_SERVICE', endlesskey_daemon_service)
+
 subdir('data')
 subdir('src')
