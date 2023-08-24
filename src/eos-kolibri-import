@@ -32,6 +32,8 @@ from tempfile import TemporaryDirectory
 
 from eos_kolibri.config import KOLIBRI_FLATPAK_ID
 
+FLATPAK_ID = KOLIBRI_FLATPAK_ID
+
 logger = logging.getLogger(os.path.basename(__file__))
 
 
@@ -45,13 +47,17 @@ def system_server_proxy(autostart=False):
     flags = Gio.DBusProxyFlags.NONE
     if not autostart:
         flags |= Gio.DBusProxyFlags.DO_NOT_AUTO_START
+    bus_name = FLATPAK_ID + '.Daemon'
+    object_path = bus_name.replace('.', '/') + '/Main'
+    interface_name = bus_name
+
     return Gio.DBusProxy.new_sync(
         bus,
         flags,
         None,  # interface info
-        KOLIBRI_FLATPAK_ID + '.Daemon',
-        KOLIBRI_FLATPAK_ID.replace('.', '/') + '/Daemon/Main',
-        KOLIBRI_FLATPAK_ID + '.Daemon',
+        bus_name,
+        object_path,
+        interface_name,
     )
 
 
@@ -133,7 +139,7 @@ class KolibriServer:
             f'--filesystem={kolibri_home}',
             f'--filesystem={orig_content}',
             '--command=/app/bin/kolibri',
-            KOLIBRI_FLATPAK_ID,
+            FLATPAK_ID,
             'start',
             '--foreground',
         )
@@ -275,8 +281,14 @@ def main():
         const=logging.DEBUG,
         help='enable debugging messages',
     )
+    ap.add_argument(
+        '--flatpak',
+        default=KOLIBRI_FLATPAK_ID,
+        help=f'execute the flatpak (default {KOLIBRI_FLATPAK_ID})'
+    )
 
     args = ap.parse_args()
+    FLATPAK_ID = args.flatpak
     logging.basicConfig(level=args.log_level)
     with KolibriServer(args.dir) as server:
         import_channels(args.dir, server.url)

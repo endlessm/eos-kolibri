@@ -13,6 +13,7 @@ import os
 import shutil
 import subprocess
 
+from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -20,7 +21,8 @@ from .. import config
 from ..utils import UserParamType, get_default_user, get_backup_path, recursive_chown
 
 
-KOLIBRI_FLATPAK_DATA_PATH = Path(".var/app", config.KOLIBRI_FLATPAK_ID, "data/kolibri")
+FLATPAK_ID = config.KOLIBRI_FLATPAK_ID
+SYSTEMD_SERVICE_NAME = config.KOLIBRI_SYSTEMD_SERVICE_NAME
 
 # These files are sufficient to identify a Kolibri installation
 KOLIBRI_DATA_FILES = (
@@ -35,11 +37,11 @@ def stop_kolibri_system_services():
     subprocess.run(["killall", "-e", "-w", "kolibri-gnome"])
     subprocess.run(["killall", "-e", "-w", "kolibri-search-provider"])
     click.echo(
-        f"Trying to stop systemd unit: '{config.KOLIBRI_SYSTEMD_SERVICE_NAME}'..."
+        f"Trying to stop systemd unit: '{SYSTEMD_SERVICE_NAME}'..."
     )
     try:
         subprocess.check_call(
-            ["systemctl", "stop", config.KOLIBRI_SYSTEMD_SERVICE_NAME]
+            ["systemctl", "stop", SYSTEMD_SERVICE_NAME]
         )
     except subprocess.CalledProcessError:
         raise click.ClickException("Error stopping Kolibri")
@@ -90,6 +92,18 @@ def kolibri_data_exists(kolibri_data_path):
     help="Path to the system Kolibri data directory",
 )
 def main(user, source, target):
+    ap = ArgumentParser(description='Migrate Kolibri content')
+    ap.add_argument(
+        '--flatpak',
+        default=KOLIBRI_FLATPAK_ID,
+        help=f'the flatpak ID (default {config.KOLIBRI_FLATPAK_ID})'
+    )
+
+    args = ap.parse_args()
+    FLATPAK_ID = args.flatpak
+    KOLIBRI_FLATPAK_DATA_PATH = Path(".var/app", FLATPAK_ID, "data/kolibri")
+    SYSTEMD_SERVICE_NAME = 'dbus-' + FLATPAK_ID + 'Daemon.service'
+
     if source is None:
         source_path = Path(user.pw_dir, KOLIBRI_FLATPAK_DATA_PATH)
     else:
