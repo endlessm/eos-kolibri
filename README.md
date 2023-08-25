@@ -28,3 +28,10 @@ Provides tools to manage the system-wide Kolibri installation:
   instance to the system Kolibri instance.
 - `eos-kolibri-listcontent`: List content installed in Kolibri. This is useful
   to generate configuration for eos-image-builder.
+
+## Build Configuration
+
+The meson option `kolibri_flatpak_id` is set as `org.learningequality.Kolibri`
+for the `org.learningequality.Kolibri` flatpak and the dbus system service
+`org.learningequality.Kolibri.Daemon` by default. It can be set as another
+flatpak ID and will change the dbus system service accordingly.
