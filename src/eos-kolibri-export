@@ -39,7 +39,7 @@ logger = logging.getLogger(os.path.basename(__file__))
 def system_server_proxy():
     bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
     bus_name = FLATPAK_ID + '.Daemon'
-    object_path = bus_name.replace('.', '/') + '/Main'
+    object_path = '/' + bus_name.replace('.', '/') + '/Main'
     interface_name = bus_name
 
     return Gio.DBusProxy.new_sync(
