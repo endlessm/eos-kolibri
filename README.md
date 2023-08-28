@@ -16,7 +16,9 @@ the `org.learningequality.Kolibri` flatpak.
 
 The `KOLIBRI_USE_SYSTEM_INSTANCE` environment variable is set globally so the
 Kolibri front-end knows to communicate with the system service rather than a
-per-session one.
+per-session one. However, for Endless Key flatpak, it should check
+`ENDLESS_KEY_USE_SYSTEM_INSTANCE` environment and make front-end communicate
+with the system service if it is set, instead of `KOLIBRI_USE_SYSTEM_INSTANCE`.
 
 ## eos-kolibri-tools
 
