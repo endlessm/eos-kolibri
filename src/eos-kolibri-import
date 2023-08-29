@@ -49,7 +49,7 @@ def system_server_proxy(autostart=False):
         flags |= Gio.DBusProxyFlags.DO_NOT_AUTO_START
     bus_name = FLATPAK_ID + '.Daemon'
     object_path = '/' + bus_name.replace('.', '/') + '/Main'
-    interface_name = bus_name
+    interface_name = 'org.learningequality.Kolibri.Daemon'
 
     return Gio.DBusProxy.new_sync(
         bus,

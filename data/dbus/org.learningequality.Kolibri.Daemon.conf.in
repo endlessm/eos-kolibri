@@ -10,7 +10,7 @@
   <policy context="default">
     <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.freedesktop.DBus.Introspectable" />
     <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.freedesktop.DBus.Properties" />
-    <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="@KOLIBRI_DAEMON_SERVICE@" />
-    <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="@KOLIBRI_DAEMON_SERVICE@.Main" />
+    <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.learningequality.Kolibri.Daemon" />
+    <allow send_destination="@KOLIBRI_DAEMON_SERVICE@" send_interface="org.learningequality.Kolibri.Daemon.Main" />
   </policy>
 </busconfig>
