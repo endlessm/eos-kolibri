@@ -1,3 +1,3 @@
 #!/bin/bash -e
 
-@bindir@/eos-kolibri-manage listcontent $@
+@bindir@/@KOLIBRI_CMD_PREFIX@-manage listcontent $@
