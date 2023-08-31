@@ -55,7 +55,7 @@ configure_file(
 )
 
 configure_file(
-    input: 'endless-key-listcontent.in',
+    input: 'eos-kolibri-listcontent.in',
     output: 'endless-key-listcontent',
     configuration: endless_key_config,
     install: true,
