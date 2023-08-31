@@ -8,7 +8,7 @@ exec flatpak run \
   --filesystem="${KOLIBRI_HOME}" \
   --system-own-name=@KOLIBRI_DAEMON_SERVICE@ \
   --system-talk-name=org.freedesktop.Accounts \
-  --command=/app/libexec/kolibri-gnome/kolibri-daemon \
+  --command=/app/libexec/kolibri-app/kolibri-daemon \
   @KOLIBRI_FLATPAK_ID@ \
   --system \
   --stop-timeout=300 \
