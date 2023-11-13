@@ -20,6 +20,18 @@ per-session one. However, for Endless Key flatpak, it should check
 `ENDLESS_KEY_USE_SYSTEM_INSTANCE` environment and make front-end communicate
 with the system service if it is set, instead of `KOLIBRI_USE_SYSTEM_INSTANCE`.
 
+The dbus system service is executed from the
+`dbus-org.learningequality.Kolibri.Daemon.service` (or
+`dbus-org.endlessos.Key.Daemon.service`) systemd unit. Normally the way to set
+environment variables for systemd services is to add a drop-in configuration.
+However, since the daemon is ultimately executed with `flatpak run`, flatpak
+manages the execution environment. In that case, environment variables for the
+daemon should be set with a flatpak override. For example:
+
+```
+flatpak override --env=KOLIBRI_DEBUG=1 org.learningequality.Kolibri
+```
+
 ## eos-kolibri-tools
 
 Provides tools to manage the system-wide Kolibri installation:
