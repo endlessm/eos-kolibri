@@ -1,12 +1,10 @@
 #!/bin/sh
 
 : "${KOLIBRI_HOME:=@KOLIBRI_DATA_DIR@}"
-: "${KOLIBRI_DEBUG:=false}"
 
 exec flatpak run \
   --no-desktop \
   --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
-  --env=KOLIBRI_DEBUG="${KOLIBRI_DEBUG}" \
   --filesystem="${KOLIBRI_HOME}" \
   --system-own-name=@KOLIBRI_DAEMON_SERVICE@ \
   --system-talk-name=org.freedesktop.Accounts \
