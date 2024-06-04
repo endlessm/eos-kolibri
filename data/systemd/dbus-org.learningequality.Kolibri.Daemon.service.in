@@ -6,5 +6,6 @@ ConditionPathExists=/var/lib/flatpak/app/@KOLIBRI_FLATPAK_ID@
 Type=dbus
 BusName=@KOLIBRI_DAEMON_SERVICE@
 ExecStart=@libexecdir@/@KOLIBRI_CMD_PREFIX@-daemon
+KillMode=mixed
 User=@KOLIBRI_USER@
 PrivateTmp=yes
