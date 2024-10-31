@@ -43,7 +43,16 @@ Provides tools to manage the system-wide Kolibri installation:
 - `eos-kolibri-listcontent`: List content installed in Kolibri. This is useful
   to generate configuration for eos-image-builder.
 
-## Build Configuration
+## Installation
+
+To build and install this project, you will need to use the
+[Meson](https://meson.build) build system:
+
+    meson setup build
+    meson build -C build
+    meson install -C build
+
+## Build configuration
 
 The meson option `kolibri_flatpak_id` is set as `org.learningequality.Kolibri`
 for the `org.learningequality.Kolibri` flatpak and the dbus system service
