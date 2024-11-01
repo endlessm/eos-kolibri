@@ -38,6 +38,7 @@ runuser -u @KOLIBRI_USER@ -- flatpak run \
   --no-desktop \
   --env=KOLIBRI_HOME="${KOLIBRI_HOME}" \
   --filesystem="${KOLIBRI_HOME}" \
+  --filesystem=host \
   --command="${FLATPAK_COMMAND}" \
   @KOLIBRI_FLATPAK_ID@ \
   ${SUBCOMMAND} \
