@@ -41,6 +41,20 @@ option(
 )
 
 option(
+    'kolibri_user_uid',
+    type: 'integer',
+    value: '132',
+    description: 'user ID (UID) of kolibri_user'
+)
+
+option(
+    'kolibri_user_gid',
+    type: 'integer',
+    value: '139',
+    description: 'group ID (GID) of kolibri_user'
+)
+
+option(
     'kolibri_user_home',
     type: 'string',
     value: '',
