@@ -60,6 +60,8 @@ dbus_system_bus_services_dir = join_paths(datadir, 'dbus-1', 'system-services')
 dbus_system_conf_dir = join_paths(datadir, 'dbus-1', 'system.d')
 
 kolibri_user = get_option('kolibri_user')
+kolibri_user_uid = get_option('kolibri_user_uid')
+kolibri_user_gid = get_option('kolibri_user_gid')
 
 kolibri_user_home = get_option('kolibri_user_home')
 if kolibri_user_home == ''
@@ -77,6 +79,8 @@ eos_kolibri_config.set('PYTHON', 'python3')
 eos_kolibri_config.set('PYTHON_INSTALL_DIR', python_install_dir)
 eos_kolibri_config.set('KOLIBRI_CMD_PREFIX', 'eos-kolibri')
 eos_kolibri_config.set('KOLIBRI_USER', kolibri_user)
+eos_kolibri_config.set('KOLIBRI_USER_UID', kolibri_user_uid)
+eos_kolibri_config.set('KOLIBRI_USER_GID', kolibri_user_gid)
 eos_kolibri_config.set('KOLIBRI_USER_HOME', kolibri_user_home)
 eos_kolibri_config.set('KOLIBRI_DATA_DIR', kolibri_data_dir)
 eos_kolibri_config.set('KOLIBRI_FLATPAK_ID', kolibri_flatpak_id)
